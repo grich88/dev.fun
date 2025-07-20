@@ -1,17 +1,8 @@
 services:
-  - type: web
-    name: dev-fun
-    env: static
-    buildCommand: ./build.sh
+  - type: static_site
+    name: high-stakes-coin-flip-showdown
+    buildCommand: npm run build
     staticPublishPath: ./build
-    runtime: node
-    nodeVersion: 20
     envVars:
-      - key: CI
-        value: "false"
-      - key: NODE_OPTIONS
-        value: "--max_old_space_size=2048"
-    headers:
-      - path: /*
-        name: Cache-Control
-        value: no-cache 
+      - key: NODE_VERSION
+        value: "20" 
