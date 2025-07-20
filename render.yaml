@@ -2,21 +2,15 @@ services:
   - type: web
     name: dev-fun
     env: static
-    buildCommand: |
-      npm install --legacy-peer-deps
-      npm install -g create-react-app
-      export PATH="/opt/render/project/.npm-global/bin:$PATH"
-      react-scripts build
+    buildCommand: ./build.sh
     staticPublishPath: ./build
     runtime: node
-    nodeVersion: 18
+    nodeVersion: 20
     envVars:
       - key: CI
         value: "false"
       - key: NODE_OPTIONS
         value: "--max_old_space_size=2048"
-      - key: NPM_CONFIG_PREFIX
-        value: "/opt/render/project/.npm-global"
     headers:
       - path: /*
         name: Cache-Control
