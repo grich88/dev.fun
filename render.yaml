@@ -2,13 +2,15 @@ services:
   - type: web
     name: dev-fun
     env: static
-    buildCommand: npm ci && npx react-scripts build
+    buildCommand: npm install --legacy-peer-deps && npx react-scripts build
     staticPublishPath: ./build
+    runtime: node
+    nodeVersion: 16
     envVars:
-      - key: NODE_VERSION
-        value: 16
       - key: CI
         value: "false"
+      - key: NODE_OPTIONS
+        value: "--max_old_space_size=2048"
     headers:
       - path: /*
         name: Cache-Control
