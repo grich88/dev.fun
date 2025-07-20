@@ -9,13 +9,14 @@
     "@solana/web3.js": "^1.91.1",
     "crypto-js": "^4.2.0",
     "ethers": "^6.11.1",
+    "express": "^5.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-scripts": "5.0.1",
     "uuid": "^9.0.1"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "node server.js",
     "build": "./build.sh",
     "test": "react-scripts test",
     "eject": "react-scripts eject"

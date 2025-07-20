@@ -1,8 +1,11 @@
 services:
-  - type: static_site
+  - type: web
     name: high-stakes-coin-flip-showdown
+    env: node
     buildCommand: npm run build
-    staticPublishPath: ./build
+    startCommand: npm start
     envVars:
       - key: NODE_VERSION
-        value: "20" 
+        value: "20"
+      - key: CI
+        value: "false" 
