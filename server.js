@@ -7,7 +7,7 @@ const port = process.env.PORT || 3000;
 app.use(express.static(path.join(__dirname, 'build')));
 
 // Handle React routing - send all requests to index.html
-app.get('*', (req, res) => {
+app.get('/*', function (req, res) {
   res.sendFile(path.join(__dirname, 'build', 'index.html'));
 });
 
