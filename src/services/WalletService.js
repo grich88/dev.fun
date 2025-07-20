@@ -1,13 +1,13 @@
 import { Connection, PublicKey, clusterApiUrl } from '@solana/web3.js';
 
 const PUMP_MINT = new PublicKey('3HfLqhtF5hR5dyBXh6BMtRaTm9qzStvEGuMa8Gx6pump');
-// Use a public QuickNode endpoint for mainnet, or devnet for localhost/testing
-const MAINNET_RPC = 'https://winter-wispy-brook.solana-mainnet.quiknode.pro/6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e6e/'; // Demo endpoint, replace for production
+// Use reliable public endpoints
+const MAINNET_RPC = 'https://api.mainnet-beta.solana.com';
 const DEVNET_RPC = clusterApiUrl('devnet');
 
 export class WalletService {
   constructor() {
-    const isDev = window.location.hostname === 'localhost';
+    const isDev = window.location.hostname === 'localhost' || window.location.hostname.includes('127.0.0.1');
     this.connection = new Connection(isDev ? DEVNET_RPC : MAINNET_RPC);
     this.isDev = isDev;
     this.connectedWallet = null;
