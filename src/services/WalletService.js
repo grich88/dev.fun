@@ -1,15 +1,37 @@
 import { Connection, PublicKey, clusterApiUrl } from '@solana/web3.js';
 
 const PUMP_MINT = new PublicKey('3HfLqhtF5hR5dyBXh6BMtRaTm9qzStvEGuMa8Gx6pump');
-// Use reliable public endpoints
-const MAINNET_RPC = 'https://api.mainnet-beta.solana.com';
+
+// Multiple RPC endpoints for better reliability
+const MAINNET_RPCS = [
+  'https://solana-api.projectserum.com',
+  'https://api.mainnet-beta.solana.com',
+  'https://rpc.ankr.com/solana'
+];
 const DEVNET_RPC = clusterApiUrl('devnet');
 
 export class WalletService {
   constructor() {
-    const isDev = window.location.hostname === 'localhost' || window.location.hostname.includes('127.0.0.1');
-    this.connection = new Connection(isDev ? DEVNET_RPC : MAINNET_RPC);
-    this.isDev = isDev;
+    const isDev = window.location.hostname === 'localhost' || 
+                  window.location.hostname.includes('127.0.0.1') ||
+                  window.location.hostname.includes('dev.fun');
+    
+    // For production, try mainnet first, fallback to devnet if needed
+    if (isDev) {
+      this.connection = new Connection(DEVNET_RPC);
+      this.isDev = true;
+    } else {
+      // Try to create connection with first mainnet RPC
+      try {
+        this.connection = new Connection(MAINNET_RPCS[0]);
+        this.isDev = false;
+      } catch (error) {
+        console.warn('Mainnet connection failed, falling back to devnet:', error);
+        this.connection = new Connection(DEVNET_RPC);
+        this.isDev = true;
+      }
+    }
+    
     this.connectedWallet = null;
     this.initialized = false;
   }
@@ -36,14 +58,33 @@ export class WalletService {
   // Connect to Phantom wallet
   async connect() {
     if (!window.solana || !window.solana.isPhantom) {
-      throw new Error('Phantom wallet is not installed');
+      throw new Error('Phantom wallet is not installed. Please install Phantom wallet extension.');
     }
+    
     try {
+      console.log('🔗 Attempting wallet connection...');
       const resp = await window.solana.connect();
       const address = resp.publicKey.toString();
-      const balanceLamports = await this.connection.getBalance(new PublicKey(address));
-      const balance = balanceLamports / 1e9; // Convert lamports to SOL
-      const tokenBalance = await this.fetchSplTokenBalance(address);
+      
+      // Try to get balance with retry logic
+      let balance = 0;
+      let tokenBalance = 0;
+      
+      try {
+        const balanceLamports = await this.connection.getBalance(new PublicKey(address));
+        balance = balanceLamports / 1e9; // Convert lamports to SOL
+        console.log(`💰 SOL Balance: ${balance}`);
+      } catch (balanceError) {
+        console.warn('⚠️ Could not fetch SOL balance:', balanceError.message);
+      }
+      
+      try {
+        tokenBalance = await this.fetchSplTokenBalance(address);
+        console.log(`🪙 PUMP Balance: ${tokenBalance}`);
+      } catch (tokenError) {
+        console.warn('⚠️ Could not fetch PUMP balance:', tokenError.message);
+      }
+      
       this.connectedWallet = {
         connected: true,
         address,
@@ -51,10 +92,17 @@ export class WalletService {
         tokenBalance,
         nickname: null
       };
-      console.log('✅ Wallet connected:', this.connectedWallet);
+      
+      console.log('✅ Wallet connected successfully:', this.connectedWallet.address);
       return this.connectedWallet;
+      
     } catch (err) {
-      throw new Error('User rejected wallet connection or Phantom not available');
+      console.error('❌ Wallet connection error:', err);
+      if (err.message.includes('User rejected')) {
+        throw new Error('Connection cancelled by user');
+      } else {
+        throw new Error('Phantom wallet connection failed. Please try again.');
+      }
     }
   }
 
